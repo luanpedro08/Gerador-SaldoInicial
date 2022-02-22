@@ -6,11 +6,11 @@ namespace Gera_SaldoInicial
 {
     public class ArquivoSaldoInicial
     {
-        public ArquivoSaldoInicial(){}
+        public ArquivoSaldoInicial() { }
         public string Conta { get; set; }
         public string Descricao { get; set; }
         public decimal Valor { get; set; }
-        public string Caminho { get; set; }
+        public string Caminho { get; set; } = @"C:\Conversao\saldoInicial";
         public string NomeEmpresa { get; set; }
 
         //Teste

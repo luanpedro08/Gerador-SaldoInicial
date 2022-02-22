@@ -11,6 +11,7 @@ using System.Security;
 using System.IO;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 
 namespace Gera_SaldoInicial
 {
@@ -20,31 +21,23 @@ namespace Gera_SaldoInicial
         {
             InitializeComponent();
 
-            comboBox1.Items.Add("SISDIA");
-            comboBox1.Items.Add("DEALERNET");
-            comboBox1.Items.Add("NBS");
-            comboBox1.Items.Add("WELLS");
+            CbExibirSistemas();
         }
 
         private void btnSelecionarArquivo_Click(object sender, EventArgs e)
         {
-            //define as propriedades do controle 
-            //OpenFileDialog
-            string nomeDiretorio = @"C:\Conversao\saldoInicial";
-            bool diretorioCriado = File.Exists(nomeDiretorio);
-            bool saldoFinal = chkSaldoFinal.Checked;
+            //define as propriedades do controle
+           
+            OpenFileDialog ofd = new OpenFileDialog();
             ArquivoSaldoInicial arq = new ArquivoSaldoInicial();
 
-            if (nomeDiretorio != string.Empty & diretorioCriado == false)
-            {
-                var diretorio = Directory.CreateDirectory(nomeDiretorio);
+            CriarDiretorio(arq.Caminho);
 
-            }
-            OpenFileDialog ofd = new OpenFileDialog();
             ofd.Multiselect = true;
             ofd.Title = "Selecionar Arquivo";
-            ofd.InitialDirectory = @"C:\Conversao\saldoInicial";
-            //filtra para exibir somente arquivos de imagens
+            ofd.InitialDirectory = arq.Caminho;
+
+            //Exibir todos tipos de arquivos
             ofd.Filter = "Arquivos All files (*.*)|*.*";
             ofd.CheckFileExists = true;
             ofd.CheckPathExists = true;
@@ -55,7 +48,7 @@ namespace Gera_SaldoInicial
 
             DialogResult dr = ofd.ShowDialog();
 
-            if (dr == System.Windows.Forms.DialogResult.OK)
+            if (dr == DialogResult.OK)
 
             {
                 // Le os arquivos selecionados 
@@ -66,7 +59,7 @@ namespace Gera_SaldoInicial
                     // Preencher Grid
                     try
                     {
-                        TratarArquivo(saldoFinal);
+                        TratarArquivo(GerarSaldoFinal());
                     }
                     catch (SecurityException ex)
                     {
@@ -76,14 +69,51 @@ namespace Gera_SaldoInicial
                     }
                     catch (Exception ex)
                     {
-                        //Não pode carregar a imagem (problemas de permissão)
-                        //MessageBox.Show("Não é possível exibir o arquivo : " + ". Você pode não ter permissão para ler o arquivo , ou " + " ele pode estar corrompido.\n\nErro reportado : " + ex.Message);
+                        //Mensagem para Formato de conta não encotrado
                         MessageBox.Show("Formato de conta não encontrado. Verifique se o relatório possui espaços em banco no inicio da linha ou Informe um formato de conta valido!");
-
                     }
                 }
             }
-        }//fim e evento botão
+        }//fim do evento botão Selecionar
+
+        public void CbExibirSistemas()
+        {
+            comboBox1.Items.Add("SISDIA");
+            comboBox1.Items.Add("DEALERNET");
+            comboBox1.Items.Add("NBS");
+            comboBox1.Items.Add("WELLS");
+        }
+
+        public string CriarDiretorio(string caminho)
+        {
+            bool diretorioCriado = File.Exists(caminho);
+            string retornaDiretorio = caminho;
+            
+            try
+            {
+                //Cria o diretorio caso nao exista
+                if (caminho != string.Empty & diretorioCriado == false)
+                {
+                    var nomeDiretorio = Directory.CreateDirectory(caminho);
+                    retornaDiretorio = nomeDiretorio.ToString();
+
+                }
+
+                return retornaDiretorio;
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
+           
+        }
+
+        public bool GerarSaldoFinal()
+        {
+            bool saldoFinal = chkSaldoFinal.Checked;
+            return saldoFinal;
+        }
 
         public void TratarArquivo(bool saldoFinal)
         {
@@ -247,7 +277,6 @@ namespace Gera_SaldoInicial
             }
 
             string nomeArquivo = $"C:\\Conversao\\saldoInicial\\saldoInicial_{nomeEmpresa}.txt";
-            //FileInfo[] caminho2 = new DirectoryInfo(Application.StartupPath).GetFiles(txtSelecionarArquivo.Text, SearchOption.AllDirectories);
             System.IO.Path.GetDirectoryName(nomeArquivo);
 
             bool arquivoCriado = false;
@@ -290,7 +319,6 @@ namespace Gera_SaldoInicial
             {
                 for (int i = 0; i < dataGridView.Rows.Count - 1; i++)
                 {
-                    //var linhaDataGrid = dataGridView.Rows[i].Cells[i] as DataGridViewRow;
                     string celulaValor = dataGridView[2,i].Value.ToString();
                     string celulaConta = dataGridView[1,i].Value.ToString();
                     string celulaCNPJ = dataGridView[3,i].Value.ToString();
